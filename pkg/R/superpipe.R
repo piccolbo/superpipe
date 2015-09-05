@@ -1,17 +1,17 @@
 `%~>%` =
 superpipe =
   function(left, right) {
-    as.function(right)(left)}
+    asFunction(right)(left)}
 
 range = function(x) structure(x, class = "Range")
 row = function(x) structure(x, class = "Row")
 col = function(x) structure(x, class = "Col")
 
-as.function = function(right, range) UseMethod("as.function")
+asFunction = function(right, range) UseMethod("asFunction")
 
-as.function.function = function(right, range) right
+asFunction.function = function(right, range) right
 
-as.function.formula =
+asFunction.formula =
   function(right, range = NULL) {
     function(left) {
       eval(
@@ -19,25 +19,37 @@ as.function.formula =
         c(list(.. = left), as.list(left)),
         environment(right))}}
 
-as.function.Range =
+asFunction.default =
   function(right) {
-    function(left) {
-      left[right]}}
+    row.range.selector = function(left) left[right, , drop = FALSE]
+    range.selector = function(left) left[right]
+    row.selector = function(left) left[right, , drop = TRUE]
+    selector = function(left) left[[right]]
+    if(inherits(right, "Range")) {
+      if(inherits(right, "Row")) {
+        row.range.selector}
+      else {
+        range.selector }}
+    else {
+      if(inherits(right, "Row")) {
+        row.selector}
+      else {
+        selector}}}
 
-as.function.Col =
-  as.function.numeric =
+asFunction.Col =
+  asFunction.numeric =
   function(right) {
     function(left) {
         left[[right]] }}
 
-as.function.character =
+asFunction.character =
   function(right) {
     function(left) {
       if(isS4(left)) slot(left, right)
       else {
           left[[right]]}}}
 
-as.function.Row =
+asFunction.Row =
   function(right) {
     function(left) {
       left[right, , drop = FALSE]}}
@@ -45,7 +57,7 @@ as.function.Row =
 
 map =
   function(left, right, range, direction = c("rows", "columns")) {
-    mapfun(left, as.function(right, range), direction)}
+    mapfun(left, asFunction(right, range), direction)}
 
 `%@%` =  partial(map, range = FALSE, direction = "rows")
 `%@|%` =  partial(map, range = FALSE, direction = "columns")
