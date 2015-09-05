@@ -35,19 +35,15 @@ as.function.character =
         else
           left[[right]]}}}
 
-`%@[%` =
-  `%@[|%` =
-  `%@%` =
-  `%@|%` =
 
 map =
   function(left, right, range, direction = c("rows", "columns")) {
     mapfun(left, as.function(right, range), direction)}
 
-`%@%` =  partial(map, range = FALSE, dirction = "rows")
-`%@|%` =  partial(map, range = FALSE, dirction = "columns")
+`%@%` =  partial(map, range = FALSE, direction = "rows")
+`%@|%` =  partial(map, range = FALSE, direction = "columns")
 `%@[%` = partial(map, range = TRUE, direction = "rows")
-`%@[|%` = partial(map, range = TRUE, dirction = "columns")
+`%@[|%` = partial(map, range = TRUE, direction = "columns")
 
 
 mapfun = function(x, fun, direction) UseMethod("mapfun")
@@ -61,9 +57,9 @@ mapfun.data.frame =
     if(direction == "columns")
       as.data.frame(lapply(mtcars, fun))
     else
-  }
+      as.data.frame(stop())}
 
 mapfun.matrix =
-  function(x, fun, direction)
+  function(x, fun, direction){}
 
 
