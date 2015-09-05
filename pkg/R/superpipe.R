@@ -1,9 +1,11 @@
+`%~>%` =
 superpipe =
-  function(left, right, range) {
-    as.function(right, range = range)(left)}
+  function(left, right) {
+    as.function(right)(left)}
 
-`%[%` = partial(superpipe, range = TRUE)
-`%[[%` = partial(superpipe, range = FALSE)
+range = function(x) structure(x, class = "Range")
+row = function(x) structure(x, class = "Row")
+col = function(x) structure(x, class = "Col")
 
 as.function = function(right, range) UseMethod("as.function")
 
@@ -17,23 +19,28 @@ as.function.formula =
         c(list(.. = left), as.list(left)),
         environment(right))}}
 
-as.function.numeric =
-  function(right, range) {
+as.function.Range =
+  function(right) {
     function(left) {
-      if(range)
-        left[right]
-      else
+      left[right]}}
+
+as.function.Col =
+  as.function.numeric =
+  function(right) {
+    function(left) {
         left[[right]] }}
 
 as.function.character =
-  function(right, range) {
+  function(right) {
     function(left) {
       if(isS4(left)) slot(left, right)
       else {
-        if(range)
-          left[right]
-        else
           left[[right]]}}}
+
+as.function.Row =
+  function(right) {
+    function(left) {
+      left[right, , drop = FALSE]}}
 
 
 map =
