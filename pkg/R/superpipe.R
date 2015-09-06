@@ -3,9 +3,9 @@ superpipe =
   function(left, right) {
     asFunction(right)(left)}
 
-range = function(x) structure(x, class = "Range")
-row = function(x) structure(x, class = "Row")
-col = function(x) structure(x, class = "Col")
+range = function(x) structure(x, class = c("Range", class(x)))
+row = function(x) structure(x, class = c("Row", class(x)))
+col = function(x) structure(x, class = c("Col", class(x)))
 
 asFunction = function(right, range) UseMethod("asFunction")
 
