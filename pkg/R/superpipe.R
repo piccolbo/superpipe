@@ -55,30 +55,14 @@ asFunction.Row =
       left[right, , drop = FALSE]}}
 
 
+`%@>%`=
 map =
-  function(left, right, range, direction = c("rows", "columns")) {
-    mapfun(left, asFunction(right, range), direction)}
+  function(left, right) {
+    mapfun(left, partial(superpipe, right = right))}
 
-`%@%` =  partial(map, range = FALSE, direction = "rows")
-`%@|%` =  partial(map, range = FALSE, direction = "columns")
-`%@[%` = partial(map, range = TRUE, direction = "rows")
-`%@[|%` = partial(map, range = TRUE, direction = "columns")
-
-
-mapfun = function(x, fun, direction) UseMethod("mapfun")
+mapfun = function(x, fun) UseMethod("mapfun")
 
 mapfun.default =
-  function(x, fun, direction = NULL)
+  function(x, fun)
     lapply(x, fun)
-
-mapfun.data.frame =
-  function(x, fun, direction) {
-    if(direction == "columns")
-      as.data.frame(lapply(mtcars, fun))
-    else
-      as.data.frame(stop())}
-
-mapfun.matrix =
-  function(x, fun, direction){}
-
 
