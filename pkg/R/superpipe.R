@@ -1,7 +1,12 @@
 `%~>%` =
-superpipe =
+  superpipe =
   function(left, right) {
     asFunction(right)(left)}
+
+`%>%` =
+  superpipe_nse =
+  function(left, right)
+    superpipe(left, lazy(right))
 
 Range = function(x) structure(x, class = c("Range", class(x)))
 Row = function(x) structure(x, class = c("Row", class(x)))
@@ -26,6 +31,11 @@ asFunction.formula =
       else
         retval}}
 
+asFunction.lazy =
+  function(right) {
+    function(left) {
+      lazy_eval(right, as.list(left))}}
+
 asFunction.default =
   function(right) {
     row.range.selector = function(left) left[right, , drop = FALSE]
@@ -45,7 +55,7 @@ asFunction.default =
 
 
 `%@>%`=
-map =
+  map =
   function(left, right) {
     mapfun(left, partial(superpipe, right = right))}
 
