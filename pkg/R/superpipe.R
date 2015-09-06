@@ -11,13 +11,20 @@ asFunction = function(right) UseMethod("asFunction")
 
 asFunction.function = function(right) right
 
+setAs("ANY", "data.frame", function(from) as.data.frame(from))
+
 asFunction.formula =
   function(right) {
     function(left) {
-      eval(
-        as.list(right)[[2]],
-        c(list(.. = left), as.list(left)),
-        environment(right))}}
+      retval =
+        eval(
+          as.list(right)[[2]],
+          c(list(.. = left), as.list(left)),
+          environment(right))
+      if(inherits(right, "Range"))
+        as(retval, class(left))
+      else
+        retval}}
 
 asFunction.default =
   function(right) {
