@@ -60,11 +60,11 @@ ll %~>% "josh" %~>% "age"
 
 mtcars %>% filter(carb > 3)
 #filter records with carb greater than 3
-letters %>% Range(sample(1:length(letters))) %>% tail(.., 3)
+letters %>% Range(sample(1:length(letters))) %>% tail(.., 3) #broken
 #scramble alphabet then take last three
 letters %>% sample(1:length(letters), 1)
 #random letter
-mtcars %>% Range(c(carb, cyl))
+mtcars %>% Range(c(carb, cyl)) #broken
 # select two cols
 mtcars %>% carb %>% mean
 # take carb col and mean

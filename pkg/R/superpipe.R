@@ -14,6 +14,12 @@
         name = re,
         integer = left[[re]],
         numeric = left[[re]],
+        `function` = re(left),
+        call = {
+          if(".." %in% all.vars(re))
+            re
+          else
+            as.call(c(as.list(re)[1], as.name(".."), as.list(re)[-1]))},
         stop("Do not understand a ", class(re), "  here"))
     superpipe(left, right)}
 
@@ -43,7 +49,7 @@ asFunction.formula =
 asFunction.lazy =
   function(right) {
     function(left) {
-      lazy_eval(right, as.list(left))}}
+      lazy_eval(right, c(list(.. = left), as.list(left)))}}
 
 asFunction.default =
   function(right) {
