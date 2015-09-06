@@ -36,24 +36,6 @@ asFunction.default =
       else {
         selector}}}
 
-asFunction.Col =
-  asFunction.numeric =
-  function(right) {
-    function(left) {
-        left[[right]] }}
-
-asFunction.character =
-  function(right) {
-    function(left) {
-      if(isS4(left)) slot(left, right)
-      else {
-          left[[right]]}}}
-
-asFunction.Row =
-  function(right) {
-    function(left) {
-      left[right, , drop = FALSE]}}
-
 
 `%@>%`=
 map =
