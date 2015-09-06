@@ -5,8 +5,17 @@
 
 `%>%` =
   superpipe_nse =
-  function(left, right)
-    superpipe(left, lazy(right))
+  function(left, right) {
+    right = lazy(right)
+    re = right$expr
+    right$expr =
+      switch(
+        class(re)[1],
+        name = re,
+        integer = left[[re]],
+        numeric = left[[re]],
+        stop("Do not understand a ", class(re), "  here"))
+    superpipe(left, right)}
 
 Range = function(x) structure(x, class = c("Range", class(x)))
 Row = function(x) structure(x, class = c("Row", class(x)))
