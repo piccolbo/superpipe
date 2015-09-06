@@ -7,12 +7,12 @@ Range = function(x) structure(x, class = c("Range", class(x)))
 Row = function(x) structure(x, class = c("Row", class(x)))
 Col = function(x) structure(x, class = c("Col", class(x)))
 
-asFunction = function(right, range) UseMethod("asFunction")
+asFunction = function(right) UseMethod("asFunction")
 
-asFunction.function = function(right, range) right
+asFunction.function = function(right) right
 
 asFunction.formula =
-  function(right, range = NULL) {
+  function(right) {
     function(left) {
       eval(
         as.list(right)[[2]],
