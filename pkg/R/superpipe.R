@@ -1,31 +1,10 @@
-`%~>%` =
+#SE pipe
+
+`%>%` =
   superpipe =
   function(left, right) {
     asFunction(right)(left)}
 
-`%>%` =
-  superpipe_nse =
-  function(left, right) {
-    right = lazy(right)
-    re = right$expr
-    right$expr =
-      switch(
-        class(re)[1],
-        name = re,
-        integer = left[[re]],
-        numeric = left[[re]],
-        `function` = re(left),
-        call = {
-          if(".." %in% all.vars(re))
-            re
-          else
-            as.call(c(as.list(re)[1], as.name(".."), as.list(re)[-1]))},
-        stop("Do not understand a ", class(re), "  here"))
-    superpipe(left, right)}
-
-Range = function(x) structure(x, class = c("Range", class(x)))
-Row = function(x) structure(x, class = c("Row", class(x)))
-Col = function(x) structure(x, class = c("Col", class(x)))
 
 asFunction = function(right) UseMethod("asFunction")
 
@@ -33,12 +12,26 @@ asFunction.function = function(right) right
 
 setAs("ANY", "data.frame", function(from) as.data.frame(from))
 
+Range = function(x) structure(x, class = c("Range", class(x)))
+Row = function(x) structure(x, class = c("Row", class(x)))
+Col = function(x) structure(x, class = c("Col", class(x)))
+
 asFunction.formula =
   function(right) {
+    rexpr = as.list(right)[[2]]
+    if("call" %in% class(rexpr) &&
+       !(".." %in% all.vars(rexpr)))
+      rexpr =
+        as.call(
+          c(
+            list(
+              rexpr[[1]],
+              quote(..)),
+            as.list(rexpr)[-1]))
     function(left) {
       retval =
         eval(
-          as.list(right)[[2]],
+          rexpr,
           c(list(.. = left), as.list(left)),
           environment(right))
       if(inherits(right, "Range"))
@@ -46,17 +39,17 @@ asFunction.formula =
       else
         retval}}
 
-asFunction.lazy =
-  function(right) {
-    function(left) {
-      lazy_eval(right, c(list(.. = left), as.list(left)))}}
-
 asFunction.default =
   function(right) {
     row.range.selector = function(left) left[right, , drop = FALSE]
     range.selector = function(left) left[right]
     row.selector = function(left) left[right, , drop = TRUE]
-    selector = function(left) left[[right]]
+    selector =
+      function(left) {
+        if(isS4(left))
+          slot(left, right)
+        else
+          left[[right]]}
     if(inherits(right, "Range")) {
       if(inherits(right, "Row")) {
         row.range.selector}
@@ -69,14 +62,12 @@ asFunction.default =
         selector}}}
 
 
+
+
+#iteration
+
 `%@>%`=
   map =
   function(left, right) {
-    mapfun(left, partial(superpipe, right = right))}
-
-mapfun = function(x, fun) UseMethod("mapfun")
-
-mapfun.default =
-  function(x, fun)
-    lapply(x, fun)
+    lapply(left, asFunction(right))}
 
