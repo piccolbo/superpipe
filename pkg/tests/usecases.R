@@ -1,10 +1,10 @@
 library(dplyr)
 library(superpipe)
 
-mtcars %>% ~filter(., carb > 3)
+mtcars %>% ~filter(.., carb > 3)
 mtcars %>% ~filter(carb > 3)
 #filter records with carb greater than 3
-letters %>% Range(sample(1:length(letters))) %>% ~tail(., 3)
+letters %>% Range(sample(1:length(letters))) %>% ~tail(.., 3)
 #scramble alphabet then take last three
 letters %>% sample(1:length(letters), 1)
 #random letter
@@ -18,8 +18,8 @@ mtcars %>% Range(~carb)
 # or selection of df like select(carb)
 mtcars %>% ~carb %>% mean
 # and then take mean
-mtcars %>% ~carb %>% ~mean(x = .)
-#same with . syntax, for functions with unusual arg order
+mtcars %>% ~carb %>% ~mean(x = ..)
+#same with .. syntax, for functions with unusual arg order
 
 mtcars %>% 1
 #first col
@@ -57,7 +57,7 @@ ll %>% "josh" %>% "age"
 ll %>% ~josh %>% ~age
 # nested list
 
-4  %>% ~sqrt(sqrt(.))
+4  %>% ~sqrt(sqrt(..))
 #more predictable than magrittr
 
 # iteration

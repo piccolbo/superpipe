@@ -36,19 +36,19 @@ asFunction.formula =
   function(right) {
     rexpr = as.list(right)[[2]]
     if("call" %in% class(rexpr) &&
-       !("." %in% all.vars(rexpr)))
+       !(".." %in% all.vars(rexpr)))
       rexpr =
         as.call(
           c(
             list(
               rexpr[[1]],
-              quote(.)),
+              quote(..)),
             as.list(rexpr)[-1]))
     function(left) {
       retval =
         eval(
           rexpr,
-          c(list(. = left), as.list(left)),
+          c(list(.. = left), as.list(left)),
           environment(right))
       if(inherits(right, "Range"))
         as(retval, class(left))
