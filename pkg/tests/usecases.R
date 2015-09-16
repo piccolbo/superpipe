@@ -1,5 +1,5 @@
 library(dplyr)
-library(superpipe)
+library(yapo)
 
 mtcars %>% ~filter(.., carb > 3)
 mtcars %>% ~filter(carb > 3)

@@ -8,13 +8,13 @@ asFormula =
 
 
 `%>%` =
-  superpipe =
+  yapo =
   function(left, right) {
     if("formula" %in% class(right)){
       rexpr = as.list(right)[[2]]
       if(is.call(rexpr) && rexpr[[1]] == as.name("%>%")){
-        superpipe(
-          superpipe(left, asFormula(rexpr[[2]], environment(right))),
+        yapo(
+          yapo(left, asFormula(rexpr[[2]], environment(right))),
           eval(rexpr[[3]], environment(right)))}
       else
         asFunction(right)(left)}
