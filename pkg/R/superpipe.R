@@ -1,9 +1,25 @@
 #SE pipe
 
+asFormula =
+  function(x, env) {
+    form = eval(call("~", x))
+    environment(form) = env
+    form}
+
+
 `%>%` =
   superpipe =
   function(left, right) {
-    asFunction(right)(left)}
+    if("formula" %in% class(right)){
+      rexpr = as.list(right)[[2]]
+      if(is.call(rexpr) && rexpr[[1]] == as.name("%>%")){
+        superpipe(
+          superpipe(left, asFormula(rexpr[[2]], environment(right))),
+          eval(rexpr[[3]], environment(right)))}
+      else
+        asFunction(right)(left)}
+    else
+      asFunction(right)(left)}
 
 
 asFunction = function(right) UseMethod("asFunction")

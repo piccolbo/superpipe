@@ -16,7 +16,7 @@ mtcars %>% ~carb
 # formula syntax
 mtcars %>% Range(~carb)
 # or selection of df like select(carb)
-mtcars %>% (~carb) %>% mean #parens needed because of ~ %>% rel precendence
+mtcars %>% ~carb %>% mean
 # and then take mean
 mtcars %>% ~carb %>% ~mean(x = ..)
 #same with .. syntax, for functions with unusual arg order
@@ -54,7 +54,7 @@ ll =
         gender = "male",
         employed = TRUE))
 ll %>% "josh" %>% "age"
-ll %>% (~josh) %>% ~age #parens needed because of %>% ~ rel precedence
+ll %>% ~josh %>% ~age
 # nested list
 
 4  %>% ~sqrt(sqrt(..))
@@ -64,3 +64,4 @@ ll %>% (~josh) %>% ~age #parens needed because of %>% ~ rel precedence
 #
 #
 letters  %@>% digest  %>% toupper %>% sort
+
