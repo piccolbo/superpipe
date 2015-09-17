@@ -32,33 +32,57 @@ Range = function(x) structure(x, class = c("Range", class(x)))
 Row = function(x) structure(x, class = c("Row", class(x)))
 Col = function(x) structure(x, class = c("Col", class(x)))
 
+missing.args =
+  function(acall, envir) {
+    formargs =  formals(eval(acall[[1]], envir = envir))
+    if(is.null(formargs))
+       FALSE
+    else{
+      mandatory =
+        names(formargs)[
+        sapply(formargs, is.name) & (as.character(formargs) == "")]
+      provided =
+        as.character(
+          match.call(eval(acall[[1]], envir = envir), acall)[-1])
+      !all(mandatory %in% c(provided, "..."))}}
+
+as.list.S4 =
+  function(x)
+    setNames(
+      lapply(slotNames(x), function(n) slot(d, n)),
+      slotNames(x))
+
 asFunction.formula =
   function(right) {
     rexpr = as.list(right)[[2]]
+    renvir = environment(right)
     if("call" %in% class(rexpr) &&
-       !(".." %in% all.vars(rexpr)))
+       !(".." %in% all.vars(rexpr)) &&
+       missing.args(rexpr, renvir))
       rexpr =
-        as.call(
-          c(
-            list(
-              rexpr[[1]],
-              quote(..)),
-            as.list(rexpr)[-1]))
+      as.call(
+        c(
+          list(
+            rexpr[[1]],
+            quote(..)),
+          as.list(rexpr)[-1]))
     function(left) {
-      retval =
-        eval(
-          rexpr,
-          c(list(.. = left), as.list(left)),
-          environment(right))
-      if(inherits(right, "Range"))
-        as(retval, class(left))
-      else
-        retval}}
+      eval(
+        rexpr,
+        c(
+          list(.. = left),
+          if(isS4(left))
+            as.list.S4(left)
+          else
+            as.list(left)),
+        renvir)}}
 
 asFunction.default =
   function(right) {
-    row.range.selector = function(left) left[right, , drop = FALSE]
-    range.selector = function(left) left[right]
+    row.range.selector =
+      function(left)
+        as(left[right, , drop = FALSE], class(left))
+    range.selector = function(left) as(left[right], class(left))
     row.selector = function(left) left[right, , drop = TRUE]
     selector =
       function(left) {
@@ -76,9 +100,6 @@ asFunction.default =
         row.selector}
       else {
         selector}}}
-
-
-
 
 #iteration
 
