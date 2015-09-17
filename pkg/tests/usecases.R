@@ -20,7 +20,9 @@ mtcars %>% ~carb %>% mean
 # and then take mean
 mtcars %>% ~carb %>% ~mean(x = ..)
 #same with .. syntax, for functions with unusual arg order
-
+mtcars %>% ~data.frame(carb, cyl)
+mtcars %>% ~carb + ~cyl
+#dplyr territory
 mtcars %>% 1
 #first col
 mtcars %>% Row(1)
@@ -64,4 +66,3 @@ ll %>% ~josh %>% ~age
 #
 #
 letters  %@>% digest  %>% toupper %>% sort
-
