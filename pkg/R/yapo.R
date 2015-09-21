@@ -47,7 +47,7 @@ missing.args =
       !all(mandatory %in% c(provided, "..."))}}
 
 as.list.S4 =
-  function(x)
+  function(x, ...)
     setNames(
       lapply(slotNames(x), function(n) slot(d, n)),
       slotNames(x))
