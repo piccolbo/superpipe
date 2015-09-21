@@ -9,7 +9,7 @@
 
 
 
-The *pipe operator*, `%>%` in its latest incarnation, is all the rage in R circles. I first saw it in a semi-unknown package called [`vadr`](https://github.com/crowding/vadr). Then one was added to [`dplyr`](https://github.com/hadley/dplyr), but I preferred my own implementation when working on [`plyrmr`](https://github.com/RevolutionAnalytics/plyrmr) Then a dedicated package emerged called [`magrittr`](http://github.com/smbache/magrittr) and it became the de-facto standard among pipe-lovers. The pipe operator allows to write 
+The *pipe operator*, `%>%` in its latest incarnation, is all the rage in R circles. I first saw it in a less-well-known package called [`vadr`](https://github.com/crowding/vadr). Then one was added to [`dplyr`](https://github.com/hadley/dplyr), but I preferred my own implementation when working on [`plyrmr`](https://github.com/RevolutionAnalytics/plyrmr). Then a dedicated package emerged called [`magrittr`](http://github.com/smbache/magrittr) and it became the de-facto standard among pipe lovers when `dplyr` switched to it. The pipe operator allows to write 
 
 ```
 f(g(g.arg1, g.arg2, ...), f.arg2, ...)
@@ -38,7 +38,7 @@ or
 transform(mtcars, mtcars$carb/mtcars$cyl)
 ```
 
-The much more recent `dplyr` has picked up this idiom, improved it and applied it consistently to an organized set of primitives to manipulate data frames. Unfortunately, when one starts programming with these functions, some drawbacks emerge. The first and most obvious one, is that parametrizing arguments is difficult. Imagine we are writing a function that does something on a column, any column of a data frame: `function(df, col)`. In the body of that function, we need to use `transform` to create a new column that depends on the column identified by `col`. You may think right off the bat something like `transform(df, newcol = col^2)`, but that would just look for a column named `"col"`, not anything to deal with the value of the variable `col`. There are even more subtle problems when using `transform` in functions nested inside other functions. The documentation for `transform` is pretty clear about this: "For programming it is better to use the standard subsetting arithmetic functions, and in particular the non-standard evaluation of argument `transform` [sic, there is no such argument] can have unanticipated consequences". It seems to me that one of the great strengths of R is that it works both as a UI for people doing statistics as well as a programming language, and creating separate jargons for the two use cases may offer some short term benefits, but in the long run weakens the dual nature of R and makes the transition to programming harder. It's coding candy: attractive, but not the best in the long run. `dplyr` offers some relief from this by providing NSE-free versions of the most important functions and a more general NSE implementation. Still, the duality is there and the section of the API using NSE needs to be doubled. That's big price to pay. Adding that, perplexingly, the names of NSE and NSE-free functions differ only by a cryptic and pretty much invisible `_`, it's not too hard to agree that there is a lot of room for pain and suffering. 
+The much more recent `dplyr` has picked up this idiom, improved it and applied it consistently to an organized set of primitives to manipulate data frames. Unfortunately, when one starts programming with these functions, some drawbacks emerge. The first and most obvious one, is that parametrizing arguments is difficult. Imagine we are writing a function that does something on a column, any column of a data frame: `function(df, col)`. In the body of that function, we need to use `transform` to create a new column that depends on the column identified by `col`. You may think right off the bat something like `transform(df, newcol = col^2)`, but that would just look for a column named `"col"`, not anything to deal with the value of the variable `col`. There are even more subtle problems when using `transform` in functions nested inside other functions. The documentation for `transform` is pretty clear about this: "For programming it is better to use the standard subsetting arithmetic functions, and in particular the non-standard evaluation of argument `transform` [sic, there is no such argument] can have unanticipated consequences". It seems to me that one of the great strengths of R is that it works both as a UI for people doing statistics as well as a programming language, and creating separate jargons for the two use cases may offer some short term benefits, but in the long run weakens the dual nature of R and makes the transition to programming harder. It's coding candy: attractive, but not good for your teeth. `dplyr` offers some relief from this by providing NSE-free versions of the most important functions and a more general NSE implementation. Still, the duality is there and the section of the API using NSE needs to be replicated. That's big price to pay. Adding that, perplexingly, the names of NSE and NSE-free functions differ only by a cryptic and pretty much invisible `_`, my opinion is that we can do better than that. 
 
 ``magrittr::`%>%` `` is not immune to the same type of criticism. For instance, one can write 
 
@@ -62,7 +62,7 @@ where `.` is a special variable evaluating to the left side argument of the `%>%
 Error in sqrt(., sqrt(.)): 2 arguments passed to 'sqrt' which requires 1
 ```
 
-fails, showing a lack of *composability*, an important goal in API design. Given these considerations, I wasn't too surprised when I found that a new package by `dplyr`'s author, `purrr`, tries a different approach that avoids NSE. `purrr` is a package for processing lists inspired by javascript's `underscore.js`. A typical function is `map`, which applies a function to every element of its first argument, for example `map(mtcars, class)`. Besides taking a function, `map` accepts also a `character` or a `numeric`, which it transforms into an accessor function. Moreover, one can pass formulas that provide a quick notation for defining functions and pretty much replace NSE. It only takes a little `~` in front of an expression to explicitly suspend the normal evaluation mechanism and trigger a context-dependent one. It's a kind of on demand NSE and it expands the use of formulas outside model fitting. Formulas are perfectly set up for this, as they carry with them their intended evaluation environment, making it relatively easy to provide correct implementations that work in any context and not, say, only at top level.
+fails, showing a lack of *composability*, an important goal in API design. Given these considerations, I wasn't too surprised when I found that a new package by `dplyr`'s author, `purrr`, tries a different approach that avoids NSE. `purrr` is a package for processing lists inspired by javascript's `underscore.js`. A typical function is `map`, which applies a function to every element of its first argument, for example `map(mtcars, class)`. Besides taking a function, `map` accepts also a `character` or a `numeric`, which it transforms into an accessor function. Moreover, one can pass formulas that provide a quick notation for defining functions and pretty much replace NSE. It only takes a little `~` in front of an expression to explicitly suspend the normal evaluation mechanism and trigger a context-dependent one. It's a kind of on demand NSE and it expands the use of formulas outside model fitting. Formulas are perfectly set up for this, as they carry with them their intended evaluation environment, making it relatively easy to provide correct implementations that work in any context as opposed to, say, only at top level.
 
 This gave me an idea: define a NSE-free pipe operator that processes its second argument like `purrr::map` does with its own. Thus was conceived a new package, `yapo`, for "Yet Another Pipe Operator", a name chosen in homage to `yacc` and to acknowledge the proliferation of pipe operators. Equally interesting would be taking `dplyr` and replacing NSE with the same approach, but it will have to wait.
 
@@ -133,7 +133,13 @@ Another difference with `magrittr` is that `yapo` is meant to be simple in defin
 just works, no excuses. Please  notice the use of `..` instead of `.` to avoid confusion with `.` as used in models. 
 
 These are use cases suggested by `dplyr`, but there are others that come from `purrr` and are here unified in a single operator. What `purrr` can do on a list of elements, ` %>% ` does on a single element. For instance, 
-`purrr::map(a.list, a.string)` accesses all the elements named after the value of `a.string` in the list `a.list`, equivalent to `purrr::map(a.list, function(x) x[[a.string]])`. It may be a small difference, but type the long version many enough times and you are going to be grateful for the shorthand. In analogy with `purrr`, we can use integer and character vectors on the right side of `%>%`, implicitly creating an accessor function that gets then applied to the left side, as in  
+`purrr::map(a.list, a.string)` accesses all the elements named after the value of `a.string` in the list `a.list`, equivalent to 
+
+```
+purrr::map(a.list, function(x) x[[a.string]])
+```
+
+It may be a small difference, but type the long version many enough times and you are going to be grateful for the shorthand. In analogy with `purrr`, we can use integer and character vectors on the right side of `%>%`, implicitly creating an accessor function that gets then applied to the left side, as in  
 
 
 ```r
@@ -143,7 +149,7 @@ mtcars %>% "carb"
 ```
  [1] 4 4 1 1 2 1 4 2 2 4 4 3 3 3 4 4 4 1 2 1 1 2 2 4 2 1 2 2 4 6 8 2
 ```
-which is the same as `mtcars[["carb"]]`. You may be protesting that that's a very small difference, or you may be browsing Yahoo already. In the latter case, I've regretfully lost you, but in the former, bear with me a little longer. `%>%` unifies vector, list, data frame, matrix, and S3 and S4 object access. Yes, no more getting errors when using `[[]]` on S4 objects, enough of that. It works also on 2D data structures such as data frames and matrices, with the help of a couple of classes (credit @ctbrown for this idea). The default is column access. If, instead, row access is desired, one only needs to use the function `Row` as in 
+which is the same as `mtcars[["carb"]]`. You may be protesting that that's a very small difference, but bear with me a little longer. `%>%` unifies vector, list, data frame, matrix, S3 and S4 object access. Yes, no more getting errors when using `[[]]` on S4 objects, enough of that. It works also on 2D data structures such as data frames and matrices, with the help of a couple of functions (credit @ctbrown for this idea). The default is column access. If, instead, row access is desired, one only needs to use the function `Row` as in 
 
 
 ```r
@@ -196,7 +202,7 @@ Datsun 710     22.8   4  108  93 3.85 2.320 18.61  1  1    4    1
 Hornet 4 Drive 21.4   6  258 110 3.08 3.215 19.44  1  0    3    1
 ```
 
-When selecting ranges, the result type is always the same as the input type, unlike with `[,]` with its infamous `drop` option. Of course, selecting ranges in S3 or S4 objects will fail in most cases. The formula notation keeps working and you can use it to cut down on the typing quite a bit. Imagine you have a list of teams of people, each with personal information including a phone, in  a three-level nested list (named at all levels). 
+When selecting ranges, the result type is always the same as the input type, unlike with `[,]` and its ill-advised `drop` option. Of course, selecting ranges in S3 or S4 objects will fail in most cases because it doesn't make sense. The formula notation keeps working and you can use it to cut down on the typing quite a bit. The evaluation environment of the formula is expanded, as we have seen, with a variable `..` but also with a variable for each named element of  the left argument of the pipe, in analogy with `dplyr`. Imagine you have a list of teams of people, each with personal information including a phone, in  a three-level nested list (named at all levels). 
 
 
 ```r
@@ -213,7 +219,7 @@ teams =
     EmptyTeam = list())
 ```
   
-You can access the Annies's phone in team "Avengers" with 
+You can access Annie's phone in team "Avengers" with 
 
 
 ```r
@@ -238,8 +244,9 @@ teams[["Avengers"]][["Annie"]][["phone"]]
 (6 vs. 18 additional keystrokes, excluding names). Whether it looks better, that's subjective.
 
 
-Actually, there were a couple of technical hurdles in implementing `yapo`. The first is that custom operators in R, the ones that start end end with a `%` have higher priority than `~`. That would have forced us to protect every formula but the last one in a complex pipe  with `()`. To prevent that, `yapo` reverses the priority of `%>%` and `~`. It's a testament to the flexibility of the language that this is at all possible. The other hairy problem was to guess when the first argument of a function is missing, as in `filter(mpg > 15)`. We settled for testing for missing arguments with no defaults. For instance, the `.data` argument to `filter` had no default and is  not provided in `filter(mpg > 15)`. Hence it is necessary to add the special argument `..` and the convention is to add it as the first, unnamed argument, which works well with `dplyr` functions and many other reasonably designed APIs. It's a heuristic and if it doesn't work in some cases you just have to explicitly add `..`, as in `sqrt(sqrt(..))`.
+While a fairly simple package, there were a couple of technical hurdles in implementing `yapo`. The first is that custom operators in R, the ones that start and end with a `%`, have higher priority than `~`. That would have forced us to protect every formula but the last one in a complex pipe  with `()`. To avoid that, `yapo` reverses the priority of `%>%` and `~`. It's a testament to the flexibility of the language that this is at all possible. The other hairy problem was guessing when the first argument of a function is missing, as in `filter(mpg > 15)`. We settled for testing for missing arguments with no defaults. For instance, the `.data` argument to `filter` has no default and is  not provided in `filter(mpg > 15)`. Hence it is necessary to add the special argument `..` and the convention is to add it as the first, unnamed argument, which works well with `dplyr` functions and many other reasonably designed APIs. It's a heuristic and if it doesn't work in some cases you just have to explicitly add `..`, as in `sqrt(sqrt(..))`.
 
 
+And with that, please install `yapo` and let me know how you like it. Install is as simple as `devtools::install_github("piccolbo/yapo/pkg")`. Remember to load after `magrittr` or `dplyr` to shadow their own pipe operators. 
 
 
