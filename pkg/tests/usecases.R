@@ -21,7 +21,7 @@ mtcars %>% ~carb %>% mean
 mtcars %>% ~carb %>% ~mean(x = ..)
 #same with .. syntax, for functions with unusual arg order
 mtcars %>% ~data.frame(carb, cyl)
-mtcars %>% ~carb + ~cyl
+mtcars %>% ~carb + cyl
 #dplyr territory
 mtcars %>% 1
 #first col
@@ -63,6 +63,7 @@ ll %>% ~josh %>% ~age
 #more predictable than magrittr
 
 # iteration
+# not ready for prime time
 #
 #
-letters  %@>% digest  %>% toupper %>% sort
+#letters  %@>% digest::digest  %>% toupper %>% sort
