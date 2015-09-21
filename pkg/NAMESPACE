@@ -1,3 +1,2 @@
-exportPattern("^[[%@\\[:alpha:]]+")
-import(bettR)
-import(lazyeval)
+export(`%>%`, Row, Range)
+import(methods)
