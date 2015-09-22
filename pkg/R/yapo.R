@@ -49,7 +49,7 @@ missing.args =
 as.list.S4 =
   function(x, ...)
     setNames(
-      lapply(slotNames(x), function(n) slot(d, n)),
+      lapply(slotNames(x), function(n) slot(x, n)),
       slotNames(x))
 
 asFunction.formula =
