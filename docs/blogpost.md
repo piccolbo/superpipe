@@ -9,6 +9,8 @@
 
 
 
+## Prologue
+
 The *pipe operator*, `%>%` in its latest incarnation, is all the rage in R circles. I first saw it in a less-well-known package called [`vadr`](https://github.com/crowding/vadr). Then one was added to [`dplyr`](https://github.com/hadley/dplyr), but I preferred my own implementation when working on [`plyrmr`](https://github.com/RevolutionAnalytics/plyrmr). Then a dedicated package emerged called [`magrittr`](http://github.com/smbache/magrittr) and it became the de-facto standard among pipe lovers when `dplyr` switched to it. The pipe operator allows to write 
 
 ```
@@ -21,7 +23,11 @@ as
 g(g.arg1, g.arg2, ...) %>% f(f.arg2, ...)
 ```
 
-for any functions `f` and `g`. The advantages of this style have been discussed [in depth](http://www.r-statistics.com/2014/08/simpler-r-coding-with-pipes-the-present-and-future-of-the-magrittr-package/) and are not the subject of this post, but it should be clear to anyone with a moderate knowledge of R that evaluating `f(f.arg2, ...)` while taking its first argument from somewhere else requires some form of non standard evaluation (NSE). Standard evaluation would complain about a missing argument or use a default if available. NSE has a long tradition in R going back to `base` functions such as `transform` and `subset`. In the case of those functions, columns of the first argument, always a data frame, can be mentioned by name in other arguments as if they were additional in-scope variables, 
+for any functions `f` and `g`. The advantages of this style have been discussed [in depth](http://www.r-statistics.com/2014/08/simpler-r-coding-with-pipes-the-present-and-future-of-the-magrittr-package/) and are not the subject of this post.
+
+
+## Critique of Non Standard Evaluation
+It should be clear to anyone with a moderate knowledge of R that evaluating `f(f.arg2, ...)` while taking its first argument from somewhere else requires some form of non standard evaluation (NSE). Standard evaluation would complain about a missing argument or use a default if available. NSE has a long tradition in R going back to `base` functions such as `transform` and `subset`. In the case of those functions, columns of the first argument, always a data frame, can be mentioned by name in other arguments as if they were additional in-scope variables, 
 
 
 ```r
@@ -62,9 +68,15 @@ where `.` is a special variable evaluating to the left side argument of the `%>%
 Error in sqrt(., sqrt(.)): 2 arguments passed to 'sqrt' which requires 1
 ```
 
-fails, showing a lack of *composability*, an important goal in API design. Given these considerations, I wasn't too surprised when I found that a new package by `dplyr`'s author, `purrr`, tries a different approach that avoids NSE. `purrr` is a package for processing lists inspired by javascript's `underscore.js`. A typical function is `map`, which applies a function to every element of its first argument, for example `map(mtcars, class)`. Besides taking a function, `map` accepts also a `character` or a `numeric`, which it transforms into an accessor function. Moreover, one can pass formulas that provide a quick notation for defining functions and pretty much replace NSE. It only takes a little `~` in front of an expression to explicitly suspend the normal evaluation mechanism and trigger a context-dependent one. It's a kind of on demand NSE and it expands the use of formulas outside model fitting. Formulas are perfectly set up for this, as they carry with them their intended evaluation environment, making it relatively easy to provide correct implementations that work in any context as opposed to, say, only at top level.
+fails, showing a lack of *composability*, an important goal in API design. 
 
-This gave me an idea: define a NSE-free pipe operator that processes its second argument like `purrr::map` does with its own. Thus was conceived a new package, `yapo`, for "Yet Another Pipe Operator", a name chosen in homage to `yacc` and to acknowledge the proliferation of pipe operators. Equally interesting would be taking `dplyr` and replacing NSE with the same approach, but it will have to wait.
+## Critique of `purrr` reason
+
+Given these considerations, I wasn't too surprised when I found that a new package by `dplyr`'s author, `purrr`, tries a different approach that avoids NSE. `purrr` is a package for processing lists inspired by javascript's `underscore.js`. A typical function is `map`, which applies a function to every element of its first argument, for example `map(mtcars, class)`. Besides taking a function, `map` accepts also a `character` or a `numeric`, which it transforms into an accessor function. Moreover, one can pass formulas that provide a quick notation for defining functions and pretty much replace NSE. It only takes a little `~` in front of an expression to explicitly suspend the normal evaluation mechanism and trigger a context-dependent one. It's a kind of on demand NSE and it expands the use of formulas outside model fitting. Formulas are perfectly set up for this, as they carry with them their intended evaluation environment, making it relatively easy to provide correct implementations that work in any context as opposed to, say, only at top level.
+
+## A New Pipe Operator
+
+This gave me an idea: define a NSE-free pipe operator that processes its second argument like `purrr::map` does with its own. Thus was conceived a new package, `yapo`, for "Yet Another Pipe Operator", a name chosen in homage to `yacc` and to acknowledge the proliferation of pipe operators. Taking `dplyr` and replacing NSE with the same approach would be equally interesting, but it will have to wait.
 
 So how does this pipe operator look like? First of all, very much compatible with the one in `magrittr`, which is the same as the one in `dplyr`. 
 
