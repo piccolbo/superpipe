@@ -31,11 +31,11 @@ mtcars %>% Row(Range(1:10))
 # first ten rows
 mtcars %>% Range(Row(10))
 #row 10 as data frame
-mtcars %>% Range(Col(10:11))
+mtcars %>% Range(10:11)
 # two cols
-mtcars %>% Col(Range(10))
+mtcars %>% Range(10)
 # one col as data fram
-mtcars %>% Col(10)
+mtcars %>% 10
 #same as vector
 
 ll =
