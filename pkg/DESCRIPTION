@@ -5,7 +5,8 @@ Version: 0.1
 Date: 2015-09-04
 Author: Who wrote it
 Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: A pipe operator minus the pesky NSE
+Description: A pipe operator minus the pesky NSE.
+Suggests: dplyr
 Imports: methods
-License: GPL (= 2.0)
+License: GPL(==2.0)
 LazyData: TRUE
