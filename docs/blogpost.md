@@ -51,6 +51,41 @@ The much more recent `dplyr` has picked up this idiom, improved it and applied i
 
 ```r
 library(magrittr)
+mtcars %>% filter(mpg>15)
+```
+
+```
+    mpg cyl  disp  hp drat    wt  qsec vs am gear carb
+1  21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
+2  21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
+3  22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
+4  21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
+5  18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
+6  18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
+7  24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
+....
+```
+
+but not
+
+
+```r
+myfilter = filter(mpg>15)
+```
+
+```
+Error in filter_(.data, .dots = lazyeval::lazy_dots(...)): object 'mpg' not found
+```
+
+```r
+# aiming for:
+# mtcars %>% myfilter
+```
+
+which means `magrittr` promotes the use of expressions that are not first class in R, because they are not assignable to a variable, cannot be passed to a function and so forth, which hampers programmability. Moreover, if we enter:
+
+
+```r
 4 %>% sqrt(.)
 ```
 
@@ -144,8 +179,8 @@ Another difference with `magrittr` is that `yapo` is meant to be simple in defin
 
 just works, no excuses. Please  notice the use of `..` instead of `.` to avoid confusion with `.` as used in models. 
 
-These are use cases suggested by `dplyr`, but there are others that come from `purrr` and are here unified in a single operator. What `purrr` can do on a list of elements, ` %>% ` does on a single element. For instance, 
-`purrr::map(a.list, a.string)` accesses all the elements named after the value of `a.string` in the list `a.list`, equivalent to 
+These are use cases suggested by `dplyr`, but there are others that come from `purrr` and are here unified in a single operator. What `purrr` can do on a list of elements, `%>% ` does on a single element. For instance, 
+`purrr::map(a.list, a.string)` accesses all the elements named after the value of `a.string` in the elements of list `a.list`, equivalent to 
 
 ```
 purrr::map(a.list, function(x) x[[a.string]])
@@ -255,9 +290,12 @@ teams[["Avengers"]][["Annie"]][["phone"]]
 
 (6 vs. 18 additional keystrokes, excluding names). Whether it looks better, that's subjective.
 
+## The making of `yapo`
 
 While a fairly simple package, there were a couple of technical hurdles in implementing `yapo`. The first is that custom operators in R, the ones that start and end with a `%`, have higher priority than `~`. That would have forced us to protect every formula but the last one in a complex pipe  with `()`. To avoid that, `yapo` reverses the priority of `%>%` and `~`. It's a testament to the flexibility of the language that this is at all possible. The other hairy problem was guessing when the first argument of a function is missing, as in `filter(mpg > 15)`. We settled for testing for missing arguments with no defaults. For instance, the `.data` argument to `filter` has no default and is  not provided in `filter(mpg > 15)`. Hence it is necessary to add the special argument `..` and the convention is to add it as the first, unnamed argument, which works well with `dplyr` functions and many other reasonably designed APIs. It's a heuristic and if it doesn't work in some cases you just have to explicitly add `..`, as in `sqrt(sqrt(..))`.
 
+
+## Thou shalt code
 
 And with that, please install `yapo` and let me know how you like it. Install is as simple as `devtools::install_github("piccolbo/yapo/pkg")`. Remember to load after `magrittr` or `dplyr` to shadow their own pipe operators. 
 

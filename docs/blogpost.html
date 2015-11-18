@@ -17,7 +17,23 @@
 <p>The much more recent <code>dplyr</code> has picked up this idiom, improved it and applied it consistently to an organized set of primitives to manipulate data frames. Unfortunately, when one starts programming with these functions, some drawbacks emerge. The first and most obvious one, is that parametrizing arguments is difficult. Imagine we are writing a function that does something on a column, any column of a data frame: <code>function(df, col)</code>. In the body of that function, we need to use <code>transform</code> to create a new column that depends on the column identified by <code>col</code>. You may think right off the bat something like <code>transform(df, newcol = col^2)</code>, but that would just look for a column named <code>&quot;col&quot;</code>, not anything to deal with the value of the variable <code>col</code>. There are even more subtle problems when using <code>transform</code> in functions nested inside other functions. The documentation for <code>transform</code> is pretty clear about this: “For programming it is better to use the standard subsetting arithmetic functions, and in particular the non-standard evaluation of argument <code>transform</code> [sic, there is no such argument] can have unanticipated consequences”. It seems to me that one of the great strengths of R is that it works both as a UI for people doing statistics as well as a programming language, and creating separate jargons for the two use cases may offer some short term benefits, but in the long run weakens the dual nature of R and makes the transition to programming harder. It’s coding candy: attractive, but not good for your teeth. <code>dplyr</code> offers some relief from this by providing NSE-free versions of the most important functions and a more general NSE implementation. Still, the duality is there and the section of the API using NSE needs to be replicated. That’s big price to pay. Adding that, perplexingly, the names of NSE and NSE-free functions differ only by a cryptic and pretty much invisible <code>_</code>, my opinion is that we can do better than that.</p>
 <p><code>magrittr::`%&gt;%`</code> is not immune to the same type of criticism. For instance, one can write</p>
 <pre class="r"><code>library(magrittr)
-4 %&gt;% sqrt(.)</code></pre>
+mtcars %&gt;% filter(mpg&gt;15)</code></pre>
+<pre><code>    mpg cyl  disp  hp drat    wt  qsec vs am gear carb
+1  21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
+2  21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
+3  22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
+4  21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
+5  18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
+6  18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
+7  24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
+....</code></pre>
+<p>but not</p>
+<pre class="r"><code>myfilter = filter(mpg&gt;15)</code></pre>
+<pre><code>Error in filter_(.data, .dots = lazyeval::lazy_dots(...)): object 'mpg' not found</code></pre>
+<pre class="r"><code># aiming for:
+# mtcars %&gt;% myfilter</code></pre>
+<p>which means <code>magrittr</code> promotes the use of expressions that are not first class in R, because they are not assignable to a variable, cannot be passed to a function and so forth, which hampers programmability. Moreover, if we enter:</p>
+<pre class="r"><code>4 %&gt;% sqrt(.)</code></pre>
 <pre><code>[1] 2</code></pre>
 <p>where <code>.</code> is a special variable evaluating to the left side argument of the <code>%&gt;%</code> operator. Surprisingly, though,</p>
 <pre class="r"><code>4  %&gt;% sqrt(sqrt(.))</code></pre>
@@ -63,7 +79,7 @@ mtcars %&gt;% myfilter</code></pre>
 <pre class="r"><code>4 %&gt;% ~sqrt(sqrt(..))</code></pre>
 <pre><code>[1] 1.414214</code></pre>
 <p>just works, no excuses. Please notice the use of <code>..</code> instead of <code>.</code> to avoid confusion with <code>.</code> as used in models.</p>
-<p>These are use cases suggested by <code>dplyr</code>, but there are others that come from <code>purrr</code> and are here unified in a single operator. What <code>purrr</code> can do on a list of elements, <code>%&gt;%</code> does on a single element. For instance, <code>purrr::map(a.list, a.string)</code> accesses all the elements named after the value of <code>a.string</code> in the list <code>a.list</code>, equivalent to</p>
+<p>These are use cases suggested by <code>dplyr</code>, but there are others that come from <code>purrr</code> and are here unified in a single operator. What <code>purrr</code> can do on a list of elements, <code>%&gt;%</code> does on a single element. For instance, <code>purrr::map(a.list, a.string)</code> accesses all the elements named after the value of <code>a.string</code> in the elements of list <code>a.list</code>, equivalent to</p>
 <pre><code>purrr::map(a.list, function(x) x[[a.string]])</code></pre>
 <p>It may be a small difference, but type the long version many enough times and you are going to be grateful for the shorthand. In analogy with <code>purrr</code>, we can use integer and character vectors on the right side of <code>%&gt;%</code>, implicitly creating an accessor function that gets then applied to the left side, as in</p>
 <pre class="r"><code>mtcars %&gt;% &quot;carb&quot;</code></pre>
@@ -116,6 +132,12 @@ Hornet 4 Drive 21.4   6  258 110 3.08 3.215 19.44  1  0    3    1</code></pre>
 <pre class="r"><code>teams[[&quot;Avengers&quot;]][[&quot;Annie&quot;]][[&quot;phone&quot;]]</code></pre>
 <pre><code>[1] &quot;222-222-2222&quot;</code></pre>
 <p>(6 vs. 18 additional keystrokes, excluding names). Whether it looks better, that’s subjective.</p>
+</div>
+<div id="the-making-of-yapo" class="section level2">
+<h2>The making of <code>yapo</code></h2>
 <p>While a fairly simple package, there were a couple of technical hurdles in implementing <code>yapo</code>. The first is that custom operators in R, the ones that start and end with a <code>%</code>, have higher priority than <code>~</code>. That would have forced us to protect every formula but the last one in a complex pipe with <code>()</code>. To avoid that, <code>yapo</code> reverses the priority of <code>%&gt;%</code> and <code>~</code>. It’s a testament to the flexibility of the language that this is at all possible. The other hairy problem was guessing when the first argument of a function is missing, as in <code>filter(mpg &gt; 15)</code>. We settled for testing for missing arguments with no defaults. For instance, the <code>.data</code> argument to <code>filter</code> has no default and is not provided in <code>filter(mpg &gt; 15)</code>. Hence it is necessary to add the special argument <code>..</code> and the convention is to add it as the first, unnamed argument, which works well with <code>dplyr</code> functions and many other reasonably designed APIs. It’s a heuristic and if it doesn’t work in some cases you just have to explicitly add <code>..</code>, as in <code>sqrt(sqrt(..))</code>.</p>
+</div>
+<div id="thou-shalt-code" class="section level2">
+<h2>Thou shalt code</h2>
 <p>And with that, please install <code>yapo</code> and let me know how you like it. Install is as simple as <code>devtools::install_github(&quot;piccolbo/yapo/pkg&quot;)</code>. Remember to load after <code>magrittr</code> or <code>dplyr</code> to shadow their own pipe operators.</p>
 </div>

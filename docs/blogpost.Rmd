@@ -68,6 +68,20 @@ The much more recent `dplyr` has picked up this idiom, improved it and applied i
 
 ```{r}
 library(magrittr)
+mtcars %>% filter(mpg>15)
+```
+
+but not
+
+```{r, error=TRUE}
+myfilter = filter(mpg>15)
+# aiming for:
+# mtcars %>% myfilter
+```
+
+which means `magrittr` promotes the use of expressions that are not first class in R, because they are not assignable to a variable, cannot be passed to a function and so forth, which hampers programmability. Moreover, if we enter:
+
+```{r}
 4 %>% sqrt(.)
 ``` 
 where `.` is a special variable evaluating to the left side argument of the `%>%` operator. Surprisingly, though, 
@@ -121,8 +135,8 @@ Another difference with `magrittr` is that `yapo` is meant to be simple in defin
 
 just works, no excuses. Please  notice the use of `..` instead of `.` to avoid confusion with `.` as used in models. 
 
-These are use cases suggested by `dplyr`, but there are others that come from `purrr` and are here unified in a single operator. What `purrr` can do on a list of elements, ` %>% ` does on a single element. For instance, 
-`purrr::map(a.list, a.string)` accesses all the elements named after the value of `a.string` in the list `a.list`, equivalent to 
+These are use cases suggested by `dplyr`, but there are others that come from `purrr` and are here unified in a single operator. What `purrr` can do on a list of elements, `%>% ` does on a single element. For instance, 
+`purrr::map(a.list, a.string)` accesses all the elements named after the value of `a.string` in the elements of list `a.list`, equivalent to 
 
 ```
 purrr::map(a.list, function(x) x[[a.string]])
@@ -181,9 +195,12 @@ teams[["Avengers"]][["Annie"]][["phone"]]
 
 (6 vs. 18 additional keystrokes, excluding names). Whether it looks better, that's subjective.
 
+## The making of `yapo`
 
 While a fairly simple package, there were a couple of technical hurdles in implementing `yapo`. The first is that custom operators in R, the ones that start and end with a `%`, have higher priority than `~`. That would have forced us to protect every formula but the last one in a complex pipe  with `()`. To avoid that, `yapo` reverses the priority of `%>%` and `~`. It's a testament to the flexibility of the language that this is at all possible. The other hairy problem was guessing when the first argument of a function is missing, as in `filter(mpg > 15)`. We settled for testing for missing arguments with no defaults. For instance, the `.data` argument to `filter` has no default and is  not provided in `filter(mpg > 15)`. Hence it is necessary to add the special argument `..` and the convention is to add it as the first, unnamed argument, which works well with `dplyr` functions and many other reasonably designed APIs. It's a heuristic and if it doesn't work in some cases you just have to explicitly add `..`, as in `sqrt(sqrt(..))`.
 
+
+## Thou shalt code
 
 And with that, please install `yapo` and let me know how you like it. Install is as simple as `devtools::install_github("piccolbo/yapo/pkg")`. Remember to load after `magrittr` or `dplyr` to shadow their own pipe operators. 
 
